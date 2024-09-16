@@ -2,23 +2,31 @@ using UnityEngine;
 
 public class IdleState : IMovementState
 {
+    private MovementSystem movementSystem;
+
     public void EnterState(MovementSystem movementSystem)
     {
-        throw new System.NotImplementedException();
+        this.movementSystem = movementSystem;
+        //Initialze the Idle state
     }
 
     public void ExitState()
     {
-        throw new System.NotImplementedException();
-    }
-
-    public void HandleInput(Vector2 input)
-    {
-        throw new System.NotImplementedException();
+        // Clean up or reset logic when exiting the idle state
     }
 
     public void UpdateState()
     {
-        throw new System.NotImplementedException();
+        // Logic to remain idle (e.g., apply gravity if needed)
     }
+
+    public void HandleInput(Vector2 input)
+    {
+        if (input.magnitude > 0)
+        {
+            // Transition to walking state if input is detected
+            movementSystem.TransitionState(movementSystem.IdleState);
+        }
+    }
+
 }
