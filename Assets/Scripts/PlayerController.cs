@@ -15,7 +15,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        movementSystem = new MovementSystem();
+        movementSystem = new MovementSystem(CharacterController);
         animationSystem = new AnimationSystem();
         inputSystem = new InputSystem();
 
@@ -45,6 +45,11 @@ public class PlayerController : MonoBehaviour
         Vector2 moveInput = inputSystem.MoveInput;
         Vector2 lookInput = inputSystem.LookInput;
         bool isJumping = inputSystem.IsJumping;
+        bool isSprinting = inputSystem.IsSprinting;
+
+        // Pass input to the MovementSystem
+        movementSystem.MoveInput = moveInput;
+        movementSystem.IsSprinting = isSprinting;
 
         // Pass input data to systems
         movementSystem.ProcessMovement(moveInput, isJumping);
