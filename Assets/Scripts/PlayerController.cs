@@ -15,8 +15,8 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        movementSystem = new MovementSystem();
-        animationSystem = new AnimationSystem();
+        movementSystem = new MovementSystem(CharacterController);
+        animationSystem = new AnimationSystem(Animator);
         inputSystem = new InputSystem();
 
         //Subscribe to events
@@ -45,10 +45,20 @@ public class PlayerController : MonoBehaviour
         Vector2 moveInput = inputSystem.MoveInput;
         Vector2 lookInput = inputSystem.LookInput;
         bool isJumping = inputSystem.IsJumping;
+        bool isSprinting = inputSystem.IsSprinting;
+
+        // Pass input to the MovementSystem
+        movementSystem.MoveInput = moveInput;
+        movementSystem.IsSprinting = isSprinting;
+
+        //Calculate whether the player is falling
+        bool isGrounded = movementSystem.IsGrounded();
 
         // Pass input data to systems
-        movementSystem.ProcessMovement(moveInput, isJumping);
-        animationSystem.UpdateAnimation(moveInput);
+        movementSystem.ProcessMovement(moveInput);
+
+        // Pass the calculated variables to the AnimationSystem
+        animationSystem.UpdateAnimation(moveInput, isGrounded, isJumping, isSprinting) ;
 
         //Handle looking and aiming
         if (inputSystem.IsAiming)
