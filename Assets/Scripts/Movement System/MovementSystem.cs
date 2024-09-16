@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 public class MovementSystem : MonoBehaviour
@@ -12,5 +13,10 @@ public class MovementSystem : MonoBehaviour
     void Update()
     {
         
+    }
+
+    internal void ProcessMovement(Vector2 movementInput)
+    {
+        throw new NotImplementedException();
     }
 }
