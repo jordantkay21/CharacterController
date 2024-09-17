@@ -7,13 +7,10 @@ public class RunState : IMovementState
     public void EnterState(MovementSystem movementSystem)
     {
         this.movementSystem = movementSystem;
+        movementSystem.CurrentState = MovementStates.Running;
         // Initialize walking state (e.g., set walk speed)
     }
 
-    public void ExitState()
-    {
-        // Clean up or reset logic when exiting the walking state
-    }
 
     public void UpdateState()
     {
@@ -23,7 +20,7 @@ public class RunState : IMovementState
 
     public void HandleInput(Vector2 input)
     {
-        if (input.magnitude == 0)
+        if (input.sqrMagnitude == 0)
         {
             // Transition to idle if no input
             movementSystem.TransitionState(movementSystem.IdleState);
@@ -33,6 +30,12 @@ public class RunState : IMovementState
             // Transition to sprinting if sprint button is pressed
             movementSystem.TransitionState(movementSystem.SprintState);
         }
+
+
+    }
+    public void ExitState()
+    {
+        // Clean up or reset logic when exiting the walking state
     }
 }
 

@@ -7,12 +7,10 @@ public class IdleState : IMovementState
     public void EnterState(MovementSystem movementSystem)
     {
         this.movementSystem = movementSystem;
+        movementSystem.CurrentState = MovementStates.Idle;
+        movementSystem.currentSpeed = 0;
+        movementSystem.IsIdle = true;
         //Initialze the Idle state
-    }
-
-    public void ExitState()
-    {
-        // Clean up or reset logic when exiting the idle state
     }
 
     public void UpdateState()
@@ -22,11 +20,18 @@ public class IdleState : IMovementState
 
     public void HandleInput(Vector2 input)
     {
-        if (input.magnitude > 0)
+        if (input.sqrMagnitude > 0)
         {
             // Transition to walking state if input is detected
-            movementSystem.TransitionState(movementSystem.IdleState);
+            movementSystem.TransitionState(movementSystem.RunState);
         }
+
+    }
+
+    public void ExitState()
+    {
+        movementSystem.IsIdle = false;
+        // Clean up or reset logic when exiting the idle state
     }
 
 }

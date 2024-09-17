@@ -1,6 +1,16 @@
 using System;
 using UnityEngine;
 
+public enum MovementStates
+{
+    Idle,
+    Running,
+    Sprinting,
+    Crouching,
+    Jumping,
+    Falling
+}
+
 public class MovementSystem
 {
 
@@ -9,17 +19,27 @@ public class MovementSystem
     public IMovementState RunState { get; private set; }
     public IMovementState SprintState { get; private set; }
 
-    public IMovementState currentState;
+    private IMovementState _currentState;
+    public MovementStates CurrentState;
+
+
+    //Components
+    public CharacterController characterController;
+
 
     //Shared Variables for movement
     public Vector2 MoveInput { get; set; }
+    public bool IsIdle;
+    [Tooltip("0 = false | 1 = true")]
     public bool IsSprinting { get; set; }
+    public float currentSpeed;
+    public float RunSpeed = 1f;
+    public float SprintSpeed = 2f;
+
+
+    //Jump & Fall Logic
     public bool IsFalling { get; set; }
     public float gravity = -9.81f;
-    public float RunSpeed = 3f;
-    public float SprintSpeed = 6f;
-
-    private CharacterController characterController;
     private Vector3 velocity;
 
 
@@ -32,23 +52,42 @@ public class MovementSystem
         SprintState = new SprintState();
 
         //Set the initial state
-        currentState = IdleState;
-        currentState.EnterState(this);
-    }
-
-    public void ProcessMovement(Vector2 movementInput)
-    {
-        throw new NotImplementedException();
+        _currentState = IdleState;
+        _currentState.EnterState(this);
     }
 
     public void TransitionState(IMovementState newState)
     {
-        currentState.ExitState();
-        currentState = newState;
-        currentState.EnterState(this);
+        _currentState.ExitState();
+        _currentState = newState;
+        _currentState.EnterState(this);
     }
 
-    public void UpdateState()
+    public void UpdateState(Vector2 input)
+    {
+        HandleInput(input);
+        ApplyGravity();
+        _currentState.UpdateState();
+        
+    }
+
+    private void HandleInput(Vector2 input)
+    {
+        _currentState.HandleInput(input);
+    }
+
+    public void ApplyMovement(Vector2 moveInput, float speed)
+    {
+        
+        currentSpeed = speed;
+        //Debug.Log($"Apply Movement Executed. MoveInput = {moveInput} | Speed = {currentSpeed}");
+        //Calculate movement based on input and speed
+        Vector3 move = new Vector3(moveInput.x, 0, moveInput.y);
+        characterController.Move(move * currentSpeed * Time.deltaTime);
+    }
+
+
+    public void ApplyGravity()
     {
         //Apply Gravity
         if (characterController.isGrounded && velocity.y < 0)
@@ -57,23 +96,8 @@ public class MovementSystem
             velocity.y += gravity * Time.deltaTime; //Apply gravity when falling
 
         //Apply horizontal movement based on root motion
-        characterController.Move(velocity * Time.deltaTime);
-
-        currentState.UpdateState();
+        //characterController.Move(velocity * Time.deltaTime);
     }
-
-    public void ApplyMovement(Vector2 input, float speed)
-    {
-        //Calculate movement based on input and speed
-        Vector3 move = new Vector3(input.x, 0, input.y);
-        characterController.Move(move * speed * Time.deltaTime);
-    }
-
-    public void HandleInput(Vector2 input)
-    {
-        currentState.HandleInput(input);
-    }
-
     public bool IsGrounded()
     {
         return characterController.isGrounded;

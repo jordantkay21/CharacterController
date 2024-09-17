@@ -12,15 +12,21 @@ public class AnimationSystem
     }
 
     // Method to update animation based on movement state
-    public void UpdateAnimation(Vector2 moveInput, bool isSprinting, bool isJumping, bool isGrounded)
+    /// <summary>
+    /// 
+    /// </summary>
+    /// <param name="moveInput"></param>
+    /// <param name="isSprinting">0 = false | 1 = true</param>
+    /// <param name="isJumping"></param>
+    /// <param name="isGrounded"></param>
+    public void UpdateAnimation(bool isIdle, Vector2 moveInput, float speed, bool isJumping, bool isGrounded)
     {
-
         // Update movement animation
-        float speed = moveInput.magnitude;
+        animator.SetBool("IsIdle", isIdle);
         animator.SetFloat("MoveSpeed", speed);
+        animator.SetFloat("InputX", moveInput.x);
+        animator.SetFloat("InputZ", moveInput.y);
 
-        // Update sprinting state
-        animator.SetBool("IsSprinting", isSprinting);
 
         // Handle jumping and falling
         if (isJumping)
@@ -29,7 +35,7 @@ public class AnimationSystem
         }
         else if (isGrounded)
         {
-            animator.SetBool("IsGroudned", true);
+            animator.SetBool("IsGrounded", true);
         }
         else
         {
