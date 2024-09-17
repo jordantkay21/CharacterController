@@ -15,7 +15,7 @@ public class RunState : IMovementState
     public void UpdateState()
     {
         // Process walking logic, e.g., move the player
-        movementSystem.ApplyMovement(movementSystem.MoveInput, movementSystem.RunSpeed);
+        //movementSystem.ApplyMovement(movementSystem.MoveInput, movementSystem.RunSpeed);
     }
 
     public void HandleInput(Vector2 input)

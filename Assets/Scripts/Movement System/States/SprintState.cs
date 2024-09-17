@@ -15,8 +15,8 @@ public class SprintState : IMovementState
     public void UpdateState()
     {
         // Process running logic
-        movementSystem.ApplyMovement(movementSystem.MoveInput, movementSystem.SprintSpeed);
-        RotateCharacterBasedOnInput();
+        //movementSystem.ApplyMovement(movementSystem.MoveInput, movementSystem.SprintSpeed);
+        
     }
 
     public void HandleInput(Vector2 input)
@@ -33,24 +33,6 @@ public class SprintState : IMovementState
     }
     public void ExitState()
     {
-    }
-
-    private void RotateCharacterBasedOnInput()
-    {
-         // Convert input to a direction vector in world space
-        Vector3 direction = new Vector3(movementSystem.MoveInput.x, 0, movementSystem.MoveInput.y);
-
-        if (direction.sqrMagnitude > 0.01f)  // Avoid unnecessary rotations when no input
-        {
-            // Calculate the target rotation based on the input direction
-            Quaternion targetRotation = Quaternion.LookRotation(direction);
-
-            // Smoothly rotate the character towards the target direction
-            movementSystem.characterController.transform.rotation = Quaternion.Slerp(
-                movementSystem.characterController.transform.rotation, 
-                targetRotation, 
-                Time.deltaTime * rotationSpeed);
-        }
     }
 }
 
