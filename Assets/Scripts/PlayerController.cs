@@ -5,29 +5,38 @@ using Unity.Cinemachine;
 [RequireComponent(typeof(CharacterController), typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
-    [Header("Shared Values")]
-    [SerializeField] bool showCursor = true;
-    [SerializeField] MovementStates currentState;
+    [SerializeField] bool showCursor;
+    [SerializeField] bool movementInputDetected;
+    [SerializeField] float movementInputDuration;
+
+    [Header("Configurable Locomotion Values")]
+    [SerializeField] float rotationSpeed;
+
+    [Header("Runtime Locomotion Values")]
     [SerializeField] Vector2 moveInput;
     [SerializeField] float moveSpeed;
-    [SerializeField] float rotationSpeed;
+
+    [Header("Runtime Camera Values")]
+    [SerializeField] Vector3 cameraForward;
+
+    [Header("Runtime State Management")]
+    [SerializeField] MovementStates currentState;
     [SerializeField] bool isIdle;
-    [Tooltip("0 = false | 1 = true")]
     [SerializeField] bool isSprinting;
     [SerializeField] bool isJumping;
     [SerializeField] bool isGrounded;
     
+    [Header("Runtime Components")]
+    public CharacterController CharacterController;
+    public Animator Animator;
+    public Camera Camera;
+
     private MovementSystem movementSystem;
     private AnimationSystem animationSystem;
     private InputSystem inputSystem;
     private CameraSystem cameraSystem;
 
-    public CharacterController CharacterController;
-    public Animator Animator;
-    public Camera Camera;
 
-    [SerializeField] bool movementInputDetected;
-    [SerializeField] float movementInputDuration;
 
 
     private void Awake()
@@ -64,15 +73,36 @@ public class PlayerController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        // Get input data
+        RetriveInputData();
+        RetriveCameraData();
+
+        ProcessMovementData();
+
+        // Pass the calculated variables to the AnimationSystem
+        animationSystem.UpdateAnimation(isIdle, moveInput, moveSpeed, isJumping, isGrounded) ;
+
+    }
+
+    private void RetriveInputData()
+    {
         moveInput = inputSystem.MoveInput;
-        Vector2 lookInput = inputSystem.LookInput;
         isJumping = inputSystem.IsJumping;
         isSprinting = inputSystem.IsSprinting;
+    }
 
+    private void RetriveCameraData()
+    {
         //Get camera forward direction from the CameraSystem
-        Vector3 cameraForward = cameraSystem.GetCameraForward();
+        cameraForward = cameraSystem.GetCameraForward();
+    }
 
+    /// <summary>
+    /// Inputs data retreived by Input and Camera Systems into the Movement system. 
+    /// The Movement System processes said data.
+    /// Processed Data is retrieved and stored.
+    /// </summary>
+    private void ProcessMovementData()
+    {
         // Pass input to the MovementSystem
         movementSystem.MoveInput = moveInput;
         movementSystem.IsSprinting = isSprinting;
@@ -86,15 +116,6 @@ public class PlayerController : MonoBehaviour
         movementSystem.IsSprinting = isSprinting;
         moveSpeed = movementSystem.CurrentSpeed;
         isIdle = movementSystem.IsIdle;
-
-        // Pass the calculated variables to the AnimationSystem
-        animationSystem.UpdateAnimation(isIdle, moveInput, moveSpeed, isJumping, isGrounded) ;
-
-        //Handle looking and aiming
-        if (inputSystem.IsAiming)
-        {
-            //Handle aiming logic
-        }
     }
 
 
