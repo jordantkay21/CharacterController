@@ -70,7 +70,7 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     public void OnMove(InputAction.CallbackContext context)
     {
         MoveInput = context.ReadValue<Vector2>();
-        MovementInputDetected = MoveInput.magnitude > 0;
+        MovementInputDetected = MoveInput.sqrMagnitude > 0;
     }
 
     /// <summary>
