@@ -29,12 +29,15 @@ public class MovementSystem
 
     //Shared Variables for movement
     public Vector2 MoveInput { get; set; }
+    public Vector2 LookInput;
+    public Vector3 cameraForward; // Camera forward direction
     public bool IsIdle;
     [Tooltip("0 = false | 1 = true")]
     public bool IsSprinting { get; set; }
-    public float currentSpeed;
+    public float CurrentSpeed;
     public float RunSpeed = 1f;
     public float SprintSpeed = 2f;
+    public float RotateSpeed;
 
 
     //Jump & Fall Logic
@@ -63,43 +66,58 @@ public class MovementSystem
         _currentState.EnterState(this);
     }
 
-    public void UpdateState(Vector2 input)
+    public void UpdateState(Vector2 input, bool sprintInput, Vector3 cameraForwardInput)
     {
-        HandleInput(input);
-        ApplyGravity();
+        HandleInput(input, sprintInput);
+        HandleCameraInput(cameraForwardInput);
+        //ApplyGravity();
+        RotateCharacter();
         _currentState.UpdateState();
         
     }
 
-    private void HandleInput(Vector2 input)
+    private void HandleInput(Vector2 input, bool sprintInput)
     {
+        //Debug.Log($"Handle Input executed. Is moveInput zero: {input = Vector2.zero}");
+        // Set the current move input, sprinting state, and mouse delta
+        MoveInput = input;
+        IsSprinting = sprintInput;
+
+        if (MoveInput == Vector2.zero)
+            CurrentSpeed = 0;
+        else
+        {
+            if (IsSprinting)
+                CurrentSpeed = 2;
+            else
+                CurrentSpeed = 1;
+        }
+
+        //Handle input logic based on current state
         _currentState.HandleInput(input);
     }
 
-    public void ApplyMovement(Vector2 moveInput, float speed)
+    //Method to handle camera forward direction input
+    public void HandleCameraInput(Vector3 cameraForwardInput)
     {
-        
-        currentSpeed = speed;
-        //Debug.Log($"Apply Movement Executed. MoveInput = {moveInput} | Speed = {currentSpeed}");
-        //Calculate movement based on input and speed
-        Vector3 move = new Vector3(moveInput.x, 0, moveInput.y);
-        characterController.Move(move * currentSpeed * Time.deltaTime);
+        cameraForward = cameraForwardInput;
     }
 
-
-    public void ApplyGravity()
+    public void RotateCharacter()
     {
-        //Apply Gravity
-        if (characterController.isGrounded && velocity.y < 0)
-            velocity.y = -2f; //Prevents sticking to the ground
-        else
-            velocity.y += gravity * Time.deltaTime; //Apply gravity when falling
+        Debug.Log($"RotateCahracterBasedOnCamera is executed. Camera Forward's sqr mag: {cameraForward.sqrMagnitude}");
+        if (cameraForward.sqrMagnitude > 0)
+        {
+            //Project the camera's forward vector onto the horizontal plane (Y=0)
+            Vector3 flattenedForward = new Vector3(cameraForward.x, 0, cameraForward.z).normalized;
 
-        //Apply horizontal movement based on root motion
-        //characterController.Move(velocity * Time.deltaTime);
+            //Smoothly rotate the character towards the camera's forward direction
+            Quaternion targetRotation = Quaternion.LookRotation(flattenedForward);
+            characterController.transform.rotation = Quaternion.Slerp(
+                characterController.transform.rotation,
+                targetRotation,
+                Time.deltaTime * RotateSpeed);
+        }
     }
-    public bool IsGrounded()
-    {
-        return characterController.isGrounded;
-    }
+
 }

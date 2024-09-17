@@ -8,7 +8,7 @@ public class IdleState : IMovementState
     {
         this.movementSystem = movementSystem;
         movementSystem.CurrentState = MovementStates.Idle;
-        movementSystem.currentSpeed = 0;
+        movementSystem.CurrentSpeed = 0;
         movementSystem.IsIdle = true;
         //Initialze the Idle state
     }
