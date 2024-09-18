@@ -103,6 +103,8 @@ public class PlayerController : MonoBehaviour
         moveInput = inputSystem.MoveInput;
         isJumping = inputSystem.IsJumping;
         isSprinting = inputSystem.IsSprinting;
+
+        Debug.Log($"Retrive Input data Executed. isJumping: {isJumping}");
     }
 
     private void RetriveCameraData()
@@ -122,6 +124,8 @@ public class PlayerController : MonoBehaviour
         movementSystem.groundCheckDistance = groundCheckDistance;
         movementSystem.jumpHeight = jumpHeight;
         movementSystem.gravity = gravity;
+        movementSystem.isJumping = isJumping;
+        Debug.Log($"Pass Movement data executed. isJumping: {movementSystem.isJumping}");
     }
 
     /// <summary>
@@ -136,6 +140,11 @@ public class PlayerController : MonoBehaviour
         isGrounded = movementSystem.isGrounded;
     }
 
-
+    public void OnJumpEnd(string jump)
+    {
+        Debug.Log($"{jump} animation has ended");
+        animationSystem.OnJumpAnimationEnd();
+        movementSystem.isJumping = false;
+    }
 
 }

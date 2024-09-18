@@ -83,6 +83,11 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
         {
             IsJumping = true;
         }
+
+        if (context.canceled)
+        {
+            IsJumping = false;
+        }
     }
 
     /// <summary>

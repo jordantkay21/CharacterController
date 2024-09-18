@@ -80,9 +80,9 @@ public class MovementSystem
     /// <param name="cameraForwardInput">The forward direction of the camera</param>
     public void UpdateState()
     {
+        StateManagment();
         CheckGround();
         ApplyGravity();
-        StateManagment();
         HandleCameraInput(cameraForward);
         RotateCharacter();     
     }
@@ -97,6 +97,10 @@ public class MovementSystem
         {
             CurrentState = MovementStates.Idle;
             CurrentSpeed = 0f;
+
+            Debug.Log($"In Idle State isJumping: {isJumping}");
+            if (isJumping)
+                Jump();
         }
         else
         {
@@ -155,8 +159,15 @@ public class MovementSystem
         //Perform the raycast to check for ground
         if(Physics.Raycast(rayStart, rayDirection, out hit, groundCheckDistance, groundLayer))
         {
-            isGrounded = true;
             debugColor = Color.green;
+            if (isJumping)
+            {
+                return;
+            }
+            else
+            {
+                isGrounded = true;
+            }
         }
         else
         {
@@ -168,20 +179,27 @@ public class MovementSystem
         Debug.DrawRay(rayStart, rayDirection * groundCheckDistance, debugColor);
     }
 
-    public void ApplyGravity()
+    public void Jump()
     {
         if (isGrounded)
         {
-            velocity.y = -.05f;
+
+            //Apply jump velocity using the formula for jump height
+            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
+            Debug.Log($"Jump method executed {velocity.y}");
+            isGrounded = false;
         }
 
+    }
+
+    public void ApplyGravity()
+    {
         //Apply gravity only when not grounded or jumping
         if (!isGrounded && !isJumping)
         {
             velocity.y += gravity * Time.deltaTime;
         }
 
-        Debug.Log($"Velocity.y: {velocity.y}");
         //Apply the vertical velocity to the character
         characterController.Move(velocity * Time.deltaTime);
     }

@@ -31,9 +31,9 @@ public class AnimationSystem
         animator.SetFloat("InputZ", moveInput.y);
     }
 
-    // Additional methods for handling root motion if necessary
-    public void OnAnimatorMove()
+    public void OnJumpAnimationEnd()
     {
-        // Handle root motion-based movement here if needed
+        //Reset isJumping to false
+        animator.SetBool("IsJumping", false);
     }
 }
