@@ -11,101 +11,99 @@ public enum MovementStates
     Falling
 }
 
+/// <summary>
+/// A system that handles character movement and state transitions.
+/// </summary>
 public class MovementSystem
 {
-
-    //Define different states
-    public IMovementState IdleState { get; private set; }
-    public IMovementState RunState { get; private set; }
-    public IMovementState SprintState { get; private set; }
-
-    private IMovementState _currentState;
-    public MovementStates CurrentState;
-
-
     //Components
     public CharacterController characterController;
 
-
-    //Shared Variables for movement
-    public Vector2 MoveInput { get; set; }
-    public Vector2 LookInput;
-    public Vector3 cameraForward; // Camera forward direction
-    public bool IsIdle;
-    [Tooltip("0 = false | 1 = true")]
-    public bool IsSprinting { get; set; }
-    public float CurrentSpeed;
+    //Configurable Values 
+    public float RotateSpeed;
     public float RunSpeed = 1f;
     public float SprintSpeed = 2f;
-    public float RotateSpeed;
 
+    //Retrieved Values
+    public Vector2 MoveInput { get; set; }
+    public Vector3 cameraForward; // Camera forward direction
 
-    //Jump & Fall Logic
-    public bool IsFalling { get; set; }
-    public float gravity = -9.81f;
-    private Vector3 velocity;
+    //Processed Values
+    public float CurrentSpeed;
+    public MovementStates CurrentState;
+    public bool IsSprinting { get; set; }
 
-
+    /// <summary>
+    /// Initializes a new instance of the MovementSystem class with the specified CharacterController.
+    /// </summary>
+    /// <param name="controller">CharacterController Component of the Character</param>
     public MovementSystem(CharacterController controller)
     {
         characterController = controller;
 
-        IdleState = new IdleState();
-        RunState = new RunState();
-        SprintState = new SprintState();
-
-        //Set the initial state
-        _currentState = IdleState;
-        _currentState.EnterState(this);
     }
 
-    public void TransitionState(IMovementState newState)
-    {
-        _currentState.ExitState();
-        _currentState = newState;
-        _currentState.EnterState(this);
-    }
-
+    /// <summary>
+    /// Updates the movement system based on input and camera forward direction
+    /// </summary>
+    /// <param name="input">The movement input vector</param>
+    /// <param name="sprintInput">Indicates whether the sprint input is active</param>
+    /// <param name="cameraForwardInput">The forward direction of the camera</param>
     public void UpdateState(Vector2 input, bool sprintInput, Vector3 cameraForwardInput)
     {
         HandleInput(input, sprintInput);
         HandleCameraInput(cameraForwardInput);
-        //ApplyGravity();
         RotateCharacter();
-        _currentState.UpdateState();
         
     }
 
+    /// <summary>
+    /// Handles player input for movement and sprinting
+    /// </summary>
+    /// <param name="input">The movement input vector</param>
+    /// <param name="sprintInput">Indicates whether the sprint input is active</param>
     private void HandleInput(Vector2 input, bool sprintInput)
     {
-        //Debug.Log($"Handle Input executed. Is moveInput zero: {input = Vector2.zero}");
-        // Set the current move input, sprinting state, and mouse delta
+        //Set the current move input and sprinting state
         MoveInput = input;
         IsSprinting = sprintInput;
 
+        //Update current speed based on input
         if (MoveInput == Vector2.zero)
-            CurrentSpeed = 0;
+        {
+            CurrentState = MovementStates.Idle;
+            CurrentSpeed = 0f;
+        }
         else
         {
             if (IsSprinting)
+            {
+                CurrentState = MovementStates.Sprinting;
                 CurrentSpeed = 2;
+            }
             else
+            {
+                CurrentState = MovementStates.Running;
                 CurrentSpeed = 1;
+            }
         }
-
-        //Handle input logic based on current state
-        _currentState.HandleInput(input);
     }
 
-    //Method to handle camera forward direction input
+    /// <summary>
+    /// Handles the camera forward direction input
+    /// </summary>
+    /// <param name="cameraForwardInput">The forward direction of the camera</param>
     public void HandleCameraInput(Vector3 cameraForwardInput)
     {
         cameraForward = cameraForwardInput;
     }
 
+    /// <summary>
+    /// Rotates the character to face the camera's forward direction
+    /// </summary>
     public void RotateCharacter()
     {
-        Debug.Log($"RotateCahracterBasedOnCamera is executed. Camera Forward's sqr mag: {cameraForward.sqrMagnitude}");
+        
         if (cameraForward.sqrMagnitude > 0)
         {
             //Project the camera's forward vector onto the horizontal plane (Y=0)

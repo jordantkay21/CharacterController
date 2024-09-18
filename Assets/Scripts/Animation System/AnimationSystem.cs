@@ -23,6 +23,9 @@ public class AnimationSystem
     {
         // Update movement animation
         animator.SetBool("IsIdle", isIdle);
+        animator.SetBool("isJumping", isJumping);
+        animator.SetBool("isGrounded", isGrounded);
+
         animator.SetFloat("MoveSpeed", speed);
         animator.SetFloat("InputX", moveInput.x);
         animator.SetFloat("InputZ", moveInput.y);

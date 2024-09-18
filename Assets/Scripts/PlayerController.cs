@@ -115,7 +115,6 @@ public class PlayerController : MonoBehaviour
         //Retrieve new data from MovementSystem
         movementSystem.IsSprinting = isSprinting;
         moveSpeed = movementSystem.CurrentSpeed;
-        isIdle = movementSystem.IsIdle;
     }
 
 
