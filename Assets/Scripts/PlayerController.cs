@@ -9,9 +9,16 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool movementInputDetected;
     [SerializeField] float movementInputDuration;
 
+    [Header("Configurable Gravity Values")]
+    [SerializeField] float gravity;
+
+    [Header("Configurable Jump Values")]
+    [SerializeField] float jumpHeight;
+
     [Header("Configurable Ground Check Values")]
-    public LayerMask groundLayer;
-    public float groundCheckDistance;
+    [SerializeField] Transform groundedRaycastStart;
+    [SerializeField] LayerMask groundLayer;
+    [SerializeField] float groundCheckDistance;
 
     [Header("Configurable Locomotion Values")]
     [SerializeField] float rotationSpeed;
@@ -79,15 +86,20 @@ public class PlayerController : MonoBehaviour
 
         RetriveInputData();
         RetriveCameraData();
-        ProcessMovementData(); //MovementSystem.Update called
 
-        // Pass the calculated variables to the AnimationSystem
-        animationSystem.UpdateAnimation(isIdle, moveInput, moveSpeed, isJumping, isGrounded) ;
+        PassMovementValues(); 
+
+        movementSystem.UpdateState();
+
+        RetrieveMovementData(); //Retrieves Movement data to update Inspector for debug purposes
+
+        animationSystem.UpdateAnimation(isIdle, moveInput, moveSpeed, isJumping, isGrounded);
 
     }
 
     private void RetriveInputData()
     {
+        currentState = movementSystem.CurrentState;
         moveInput = inputSystem.MoveInput;
         isJumping = inputSystem.IsJumping;
         isSprinting = inputSystem.IsSprinting;
@@ -99,26 +111,26 @@ public class PlayerController : MonoBehaviour
         cameraForward = cameraSystem.GetCameraForward();
     }
 
+    private void PassMovementValues()
+    {
+        movementSystem.MoveInput = moveInput;
+        movementSystem.isSprinting = isSprinting;
+        movementSystem.RotateSpeed = rotationSpeed;
+        movementSystem.cameraForward = cameraForward;
+        movementSystem.groundedRaycastStart = groundedRaycastStart;
+        movementSystem.groundLayer = groundLayer;
+        movementSystem.groundCheckDistance = groundCheckDistance;
+        movementSystem.jumpHeight = jumpHeight;
+        movementSystem.gravity = gravity;
+    }
+
     /// <summary>
     /// Inputs data retreived by Input and Camera Systems into the Movement system. 
     /// The Movement System processes said data.
     /// Processed Data is retrieved and stored.
     /// </summary>
-    private void ProcessMovementData()
+    private void RetrieveMovementData()
     {
-        // Pass input to the MovementSystem
-        movementSystem.MoveInput = moveInput;
-        movementSystem.isSprinting = isSprinting;
-        movementSystem.RotateSpeed = rotationSpeed;
-        movementSystem.cameraForward = cameraForward;
-        movementSystem.groundLayer = groundLayer;
-        movementSystem.groundCheckDistance = groundCheckDistance;
-
-        // Pass input data to systems
-        currentState = movementSystem.CurrentState;
-        movementSystem.UpdateState();
-
-        //Retrieve new data from MovementSystem
         isSprinting = movementSystem.isSprinting;
         moveSpeed = movementSystem.CurrentSpeed;
         isGrounded = movementSystem.isGrounded;
