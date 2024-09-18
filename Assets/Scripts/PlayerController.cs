@@ -9,6 +9,10 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool movementInputDetected;
     [SerializeField] float movementInputDuration;
 
+    [Header("Configurable Ground Check Values")]
+    public LayerMask groundLayer;
+    public float groundCheckDistance;
+
     [Header("Configurable Locomotion Values")]
     [SerializeField] float rotationSpeed;
 
@@ -75,8 +79,7 @@ public class PlayerController : MonoBehaviour
 
         RetriveInputData();
         RetriveCameraData();
-
-        ProcessMovementData();
+        ProcessMovementData(); //MovementSystem.Update called
 
         // Pass the calculated variables to the AnimationSystem
         animationSystem.UpdateAnimation(isIdle, moveInput, moveSpeed, isJumping, isGrounded) ;
@@ -105,16 +108,20 @@ public class PlayerController : MonoBehaviour
     {
         // Pass input to the MovementSystem
         movementSystem.MoveInput = moveInput;
-        movementSystem.IsSprinting = isSprinting;
+        movementSystem.isSprinting = isSprinting;
         movementSystem.RotateSpeed = rotationSpeed;
+        movementSystem.cameraForward = cameraForward;
+        movementSystem.groundLayer = groundLayer;
+        movementSystem.groundCheckDistance = groundCheckDistance;
 
         // Pass input data to systems
         currentState = movementSystem.CurrentState;
-        movementSystem.UpdateState(moveInput, isSprinting, cameraForward);
+        movementSystem.UpdateState();
 
         //Retrieve new data from MovementSystem
-        movementSystem.IsSprinting = isSprinting;
+        isSprinting = movementSystem.isSprinting;
         moveSpeed = movementSystem.CurrentSpeed;
+        isGrounded = movementSystem.isGrounded;
     }
 
 

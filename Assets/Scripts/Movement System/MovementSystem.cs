@@ -16,22 +16,35 @@ public enum MovementStates
 /// </summary>
 public class MovementSystem
 {
-    //Components
+    #region Variables
+    #region Components
     public CharacterController characterController;
-
-    //Configurable Values 
+    #endregion
+    #region Configurable Values 
+    //Camera Variables
     public float RotateSpeed;
-    public float RunSpeed = 1f;
-    public float SprintSpeed = 2f;
 
-    //Retrieved Values
+    //Movement Variables
+    public float RunSpeed;
+    public float SprintSpeed;
+
+    //Variables for ground check
+    public LayerMask groundLayer;
+    public float groundCheckDistance;
+    #endregion
+    #region Retrieved Values
+    //Input System
     public Vector2 MoveInput { get; set; }
+    //Camera System
     public Vector3 cameraForward; // Camera forward direction
-
-    //Processed Values
-    public float CurrentSpeed;
+    #endregion
+    #region Processed Values
     public MovementStates CurrentState;
-    public bool IsSprinting { get; set; }
+    public float CurrentSpeed;
+    public bool isGrounded;
+    public bool isSprinting { get; set; }
+    #endregion
+    #endregion
 
     /// <summary>
     /// Initializes a new instance of the MovementSystem class with the specified CharacterController.
@@ -49,26 +62,30 @@ public class MovementSystem
     /// <param name="input">The movement input vector</param>
     /// <param name="sprintInput">Indicates whether the sprint input is active</param>
     /// <param name="cameraForwardInput">The forward direction of the camera</param>
-    public void UpdateState(Vector2 input, bool sprintInput, Vector3 cameraForwardInput)
+    public void UpdateState()
     {
-        HandleInput(input, sprintInput);
-        HandleCameraInput(cameraForwardInput);
+        CheckGround();
+        StateManagment();
+        HandleCameraInput(cameraForward);
         RotateCharacter();
+
+        if (isGrounded)
+        {
+            // Grounded Logic (e.g., apply movement, stop falling, etc.)
+        }
+        else
+        {
+            // Not grounded logic (e.g., apply gravity)
+        }
         
     }
 
     /// <summary>
-    /// Handles player input for movement and sprinting
+    /// Handles player state based on input
     /// </summary>
-    /// <param name="input">The movement input vector</param>
-    /// <param name="sprintInput">Indicates whether the sprint input is active</param>
-    private void HandleInput(Vector2 input, bool sprintInput)
+    private void StateManagment()
     {
-        //Set the current move input and sprinting state
-        MoveInput = input;
-        IsSprinting = sprintInput;
-
-        //Update current speed based on input
+        //Update current state based on input
         if (MoveInput == Vector2.zero)
         {
             CurrentState = MovementStates.Idle;
@@ -76,7 +93,7 @@ public class MovementSystem
         }
         else
         {
-            if (IsSprinting)
+            if (isSprinting)
             {
                 CurrentState = MovementStates.Sprinting;
                 CurrentSpeed = 2;
@@ -111,6 +128,7 @@ public class MovementSystem
 
             //Smoothly rotate the character towards the camera's forward direction
             Quaternion targetRotation = Quaternion.LookRotation(flattenedForward);
+
             characterController.transform.rotation = Quaternion.Slerp(
                 characterController.transform.rotation,
                 targetRotation,
@@ -118,4 +136,28 @@ public class MovementSystem
         }
     }
 
+    //Call this method to check if the player is grounded
+    public void CheckGround()
+    {
+        //Raycast from the character's position downward
+        RaycastHit hit;
+        Vector3 rayStart = characterController.transform.position;
+        Vector3 rayDirection = Vector3.down;
+
+        Color debugColor;
+        //Perform the raycast to check for ground
+        if(Physics.Raycast(rayStart, rayDirection, out hit, groundCheckDistance, groundLayer))
+        {
+            isGrounded = true;
+            debugColor = Color.green;
+        }
+        else
+        {
+            isGrounded = false;
+            debugColor = Color.red;
+        }
+
+        //Draw the ray in teh scene view for debugging
+        Debug.DrawRay(rayStart, rayDirection * groundCheckDistance, debugColor);
+    }
 }
