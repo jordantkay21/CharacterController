@@ -6,17 +6,50 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
 {
     private PlayerInput controls;
 
-    public Vector2 LookInput { get; private set; }
-    public Vector2 MoveInput { get; private set; }
+    #region Animation Variable Hashes
 
-    public bool MovementInputDetected;
-    public float MovementInputDuration;
+    private readonly int _movementInputTappedHash = Animator.StringToHash("MovementInputTapped");
+    private readonly int _movementInputPressedHash = Animator.StringToHash("MovementInputPressed");
+    private readonly int _movementInputHeldHash = Animator.StringToHash("MovementInputHeld");
+    private readonly int _shuffleDirectionXHash = Animator.StringToHash("ShuffleDirectionX");
+    private readonly int _shuffleDirectionZHash = Animator.StringToHash("ShuffleDirectionZ");
 
-    public bool IsSprinting { get; private set; }
-    public bool IsCrouching { get; private set; }
-    public bool IsAiming { get; private set; }
-    public bool IsJumping { get; private set; }
+    private readonly int _moveSpeedHash = Animator.StringToHash("MoveSpeed");
+    private readonly int _currentGaitHash = Animator.StringToHash("CurrentGait");
 
+    private readonly int _isJumpingAnimHash = Animator.StringToHash("IsJumping");
+    private readonly int _fallingDurationHash = Animator.StringToHash("FallingDuration");
+
+    private readonly int _inclineAngleHash = Animator.StringToHash("InclineAngle");
+
+    private readonly int _strafeDirectionXHash = Animator.StringToHash("StrafeDirectionX");
+    private readonly int _strafeDirectionZHash = Animator.StringToHash("StrafeDirectionZ");
+
+    private readonly int _forwardStrafeHash = Animator.StringToHash("ForwardStrafe");
+    private readonly int _cameraRotationOffsetHash = Animator.StringToHash("CameraRotationOffset");
+    private readonly int _isStrafingHash = Animator.StringToHash("IsStrafing");
+    private readonly int _isTurningInPlaceHash = Animator.StringToHash("IsTurningInPlace");
+
+    private readonly int _isCrouchingHash = Animator.StringToHash("IsCrouching");
+
+    private readonly int _isWalkingHash = Animator.StringToHash("IsWalking");
+    private readonly int _isStoppedHash = Animator.StringToHash("IsStopped");
+    private readonly int _isStartingHash = Animator.StringToHash("IsStarting");
+
+    private readonly int _isGroundedHash = Animator.StringToHash("IsGrounded");
+
+    private readonly int _leanValueHash = Animator.StringToHash("LeanValue");
+    private readonly int _headLookXHash = Animator.StringToHash("HeadLookX");
+    private readonly int _headLookYHash = Animator.StringToHash("HeadLookY");
+
+    private readonly int _bodyLookXHash = Animator.StringToHash("BodyLookX");
+    private readonly int _bodyLookYHash = Animator.StringToHash("BodyLookY");
+
+    private readonly int _locomotionStartDirectionHash = Animator.StringToHash("LocomotionStartDirection");
+
+    #endregion
+
+    private InputData _inputData;
 
     //Action events for specific input triggers
     public Action onSprintActivated;
@@ -35,8 +68,10 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     public Action onWalkToggled;
 
     /// <inheritdoc cref="OnEnable" />
-    public InputSystem()
+    public InputSystem(InputData inputData)
     {
+        _inputData = inputData;
+
         //Initialize input actions
         controls = new PlayerInput();
         controls.CharacterControls.SetCallbacks(this);
@@ -54,13 +89,15 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     }
 
 
+
+    #region EventHandlers
     /// <summary>
     ///     Defines the action to perform when the OnLook callback is called.
     /// </summary>
     /// <param name="context">The context of the callback.</param>
     public void OnLook(InputAction.CallbackContext context)
     {
-        LookInput = context.ReadValue<Vector2>();
+        _inputData.LookInput = context.ReadValue<Vector2>();
     }
 
     /// <summary>
@@ -69,8 +106,8 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     /// <param name="context">The context of the callback.</param>
     public void OnMove(InputAction.CallbackContext context)
     {
-        MoveInput = context.ReadValue<Vector2>();
-        MovementInputDetected = MoveInput.sqrMagnitude > 0;
+        _inputData.MoveInput = context.ReadValue<Vector2>();
+        _inputData.InputDetected_db = _inputData.MoveInput.magnitude > 0;
     }
 
     /// <summary>
@@ -81,12 +118,12 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     {
         if (context.performed)
         {
-            IsJumping = true;
+            _inputData.IsJumping = true;
         }
 
         if (context.canceled)
         {
-            IsJumping = false;
+            _inputData.IsJumping = false;
         }
     }
 
@@ -112,12 +149,12 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     {
         if (context.started)
         {
-            IsSprinting = true;
+            _inputData.IsSprinting = true;
             onSprintActivated?.Invoke();
         }
         else if (context.canceled)
         {
-            IsSprinting = false;
+            _inputData.IsSprinting = false;
             onSprintDeactivated?.Invoke();
         }
     }
@@ -130,12 +167,12 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     {
         if (context.started)
         {
-            IsCrouching = true;
+            _inputData.IsCrouching = true;
             onCrouchActivated?.Invoke();
         }
         else if (context.canceled)
         {
-            IsCrouching = false;
+            _inputData.IsCrouching = false;
             onCrouchDeactivated?.Invoke();
         }
     }
@@ -148,13 +185,13 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     {
         if (context.started)
         {
-            IsAiming = true;
+            _inputData.IsAiming = true;
             onAimActivated?.Invoke();
         }
 
         if (context.canceled)
         {
-            IsAiming = false;
+            _inputData.IsAiming = false;
             onAimDeactivated?.Invoke();
         }
     }
@@ -173,6 +210,7 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
         onLockOnToggled?.Invoke();
         onSprintDeactivated?.Invoke();
     }
+    #endregion
 }
 
 

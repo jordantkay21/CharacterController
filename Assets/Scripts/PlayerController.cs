@@ -5,49 +5,50 @@ using Unity.Cinemachine;
 [RequireComponent(typeof(CharacterController), typeof(Animator))]
 public class PlayerController : MonoBehaviour
 {
-    [SerializeField] bool showCursor;
-    [SerializeField] bool movementInputDetected;
-    [SerializeField] float movementInputDuration;
+    [SerializeField] bool hideCursor;
 
-    [Header("Configurable Gravity Values")]
-    [SerializeField] float gravity;
+    [Header("REQUIRED COMPONENTS")]
+    [SerializeField] CharacterController CharacterController;
+    [SerializeField] Animator Animator;
+    [SerializeField] Camera Camera;
 
-    [Header("Configurable Jump Values")]
-    [SerializeField] float jumpHeight;
+    [Header("CONFIGURABLE VALUES")]
+    [SerializeField] float _buttonHoldThreshold;
+    [SerializeField] float _gravity;
+    [SerializeField] LayerMask _groundedLayer;
+    [SerializeField] float _groundCheckDistance;
+    [SerializeField] float _rotateSpeed;
+    [SerializeField] float _walkSpeed;
+    [SerializeField] float _runSpeed;
+    [SerializeField] float _sprintSpeed;
+    [SerializeField] float _jumpHeight;
 
-    [Header("Configurable Ground Check Values")]
-    [SerializeField] Transform groundedRaycastStart;
-    [SerializeField] LayerMask groundLayer;
-    [SerializeField] float groundCheckDistance;
+    [Header("STATE MANAGEMENT")]
+    [SerializeField] bool _isStopped;
+    [SerializeField] bool _isJumping;
+    [SerializeField] bool _isCrouching;
+    [SerializeField] bool _isGrounded;
+    [SerializeField] bool _isSprinting;
 
-    [Header("Configurable Locomotion Values")]
-    [SerializeField] float rotationSpeed;
+    [Header("RUNTIME VALUES")]
+    [SerializeField] Vector2 _moveInput;
+    [SerializeField] Vector2 _lookInput;
+    [SerializeField] float _currentSpeed;
+    [SerializeField] float _targetSpeed;
+    [SerializeField] bool _movementInputDetected;
+    [SerializeField] float _movementInputDuration;
+    [SerializeField] bool _movementInputTapped;
+    [SerializeField] bool _movementInputHeld;
 
-    [Header("Runtime Locomotion Values")]
-    [SerializeField] Vector2 moveInput;
-    [SerializeField] float moveSpeed;
 
-    [Header("Runtime Camera Values")]
-    [SerializeField] Vector3 cameraForward;
-
-    [Header("Runtime State Management")]
-    [SerializeField] MovementStates currentState;
-    [SerializeField] bool isIdle;
-    [SerializeField] bool isSprinting;
-    [SerializeField] bool isJumping;
-    [SerializeField] bool isGrounded;
-    
-    [Header("Runtime Components")]
-    public CharacterController CharacterController;
-    public Animator Animator;
-    public Camera Camera;
+    private AnimationData AnimData;
+    private MovementData MoveData;
+    private InputData InputData;
 
     private MovementSystem movementSystem;
     private AnimationSystem animationSystem;
     private InputSystem inputSystem;
     private CameraSystem cameraSystem;
-
-
 
 
     private void Awake()
@@ -56,10 +57,14 @@ public class PlayerController : MonoBehaviour
         Animator = GetComponent<Animator>();
         Camera = GetComponentInChildren<Camera>();
 
+        InputData = new InputData(_buttonHoldThreshold);
+        AnimData = new AnimationData();
+        MoveData = new MovementData();
+
         cameraSystem = new CameraSystem(Camera);
-        movementSystem = new MovementSystem(CharacterController);
-        animationSystem = new AnimationSystem(Animator);
-        inputSystem = new InputSystem();
+        movementSystem = new MovementSystem(CharacterController, MoveData);
+        animationSystem = new AnimationSystem(Animator, AnimData);
+        inputSystem = new InputSystem(InputData);
     }
     private void OnEnable()
     {
@@ -73,46 +78,91 @@ public class PlayerController : MonoBehaviour
 
     private void Update()
     {
-        if (showCursor)
-        {
-            Cursor.visible = true;
-            Cursor.lockState = CursorLockMode.None;
-        }
-        else
+        if (hideCursor)
         {
             Cursor.visible = false;
             Cursor.lockState = CursorLockMode.Locked;
         }
 
-        RetriveInputData();
-        RetriveCameraData();
-
-        PassMovementValues(); 
-
-        movementSystem.UpdateState();
-
-        RetrieveMovementData(); //Retrieves Movement data to update Inspector for debug purposes
-
-        animationSystem.UpdateAnimation(isIdle, moveInput, moveSpeed, isJumping, isGrounded);
-
+        ProcessInput();
     }
 
-    private void RetriveInputData()
+    private void ProcessInput()
     {
-        currentState = movementSystem.CurrentState;
-        moveInput = inputSystem.MoveInput;
-        isJumping = inputSystem.IsJumping;
-        isSprinting = inputSystem.IsSprinting;
+        InputData.CalculateInputData();
 
-        Debug.Log($"Retrive Input data Executed. isJumping: {isJumping}");
+        _moveInput = InputData.MoveInput;
+        _lookInput = InputData.LookInput;
+        _isCrouching = InputData.IsCrouching;
+        _isJumping = InputData.IsJumping;
+        _isSprinting = InputData.IsSprinting;
+        _movementInputDetected = InputData.InputDetected_db;
+        _movementInputDuration = InputData.InputDuration_db;
+        _movementInputTapped = InputData.MovementInputTapped;
+        _movementInputHeld = InputData.MovementInputHeld;
+        
+
     }
-
     private void RetriveCameraData()
     {
         //Get camera forward direction from the CameraSystem
         cameraForward = cameraSystem.GetCameraForward();
     }
+    public void OnJumpEnd(string jump)
+    {
+        Debug.Log($"{jump} animation has ended");
+        animationSystem.OnJumpAnimationEnd();
+        movementSystem.isJumping = false;
+    }
 
+
+    #region Archived Code
+    bool movementInputDetected;
+    float movementInputDuration;
+
+    [Header("Configurable Gravity Values")]
+    float gravity;
+
+    [Header("Configurable Jump Values")]
+    float jumpHeight;
+
+    [Header("Configurable Ground Check Values")]
+    Transform groundedRaycastStart;
+    LayerMask groundLayer;
+    float groundCheckDistance;
+
+    [Header("Configurable Locomotion Values")]
+    float rotationSpeed;
+
+    [Header("Runtime Locomotion Values")]
+    Vector2 moveInput;
+    float moveSpeed;
+
+    [Header("Runtime Camera Values")]
+    Vector3 cameraForward;
+
+    [Header("Runtime State Management")]
+    MovementStates currentState;
+    bool isStopped;
+    bool isSprinting;
+    bool isCrouching;
+    bool isJumping;
+    bool isGrounded;
+    private void OldUpdate()
+    {
+
+       // ProcessInput();
+        //RetriveCameraData();
+
+        //PassMovementValues(); 
+
+        //movementSystem.UpdateState();
+
+        //RetrieveMovementData(); //Retrieves Movement data to update Inspector for debug purposes
+
+        //animationSystem.UpdateAnimation();
+
+    }
     private void PassMovementValues()
     {
         movementSystem.MoveInput = moveInput;
@@ -127,7 +177,6 @@ public class PlayerController : MonoBehaviour
         movementSystem.isJumping = isJumping;
         Debug.Log($"Pass Movement data executed. isJumping: {movementSystem.isJumping}");
     }
-
     /// <summary>
     /// Inputs data retreived by Input and Camera Systems into the Movement system. 
     /// The Movement System processes said data.
@@ -139,12 +188,6 @@ public class PlayerController : MonoBehaviour
         moveSpeed = movementSystem.CurrentSpeed;
         isGrounded = movementSystem.isGrounded;
     }
-
-    public void OnJumpEnd(string jump)
-    {
-        Debug.Log($"{jump} animation has ended");
-        animationSystem.OnJumpAnimationEnd();
-        movementSystem.isJumping = false;
-    }
+    #endregion
 
 }

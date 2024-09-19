@@ -1,28 +1,40 @@
 using System;
 using UnityEngine;
 
-public enum MovementStates
-{
-    Idle,
-    Running,
-    Sprinting,
-    Crouching,
-    Jumping,
-    Falling
-}
-
 /// <summary>
 /// A system that handles character movement and state transitions.
 /// </summary>
 public class MovementSystem
 {
-    #region Variables
-    #region Components
-    public CharacterController characterController;
-    #endregion
+    private CharacterController characterController;
+    private MovementData moveData;
 
-    #region Constant Values
-    #endregion
+    /// <summary>
+    /// Initializes a new instance of the MovementSystem class with the specified CharacterController.
+    /// </summary>
+    /// <param name="characterController">CharacterController Component of the Character</param>
+    public MovementSystem(CharacterController characterController, MovementData movementData)
+    {
+        this.characterController = characterController;
+        this.moveData = movementData;
+    }
+
+    public void UpdateMovementState()
+    {
+        if (moveData.IsStopped)
+        {
+            moveData.CurrentState = MovementStates.Base;
+            moveData.CurrentGait = MovementGait.Idle;
+            moveData.TargetSpeed = 0;
+        }
+    }
+
+
+
+
+
+
+    #region Archieved Code
 
     #region Configurable Values 
     //Camera Variables
@@ -60,17 +72,6 @@ public class MovementSystem
     #endregion
 
     private Vector3 velocity; //Stores vertical velocity
-    #endregion
-
-    /// <summary>
-    /// Initializes a new instance of the MovementSystem class with the specified CharacterController.
-    /// </summary>
-    /// <param name="controller">CharacterController Component of the Character</param>
-    public MovementSystem(CharacterController controller)
-    {
-        characterController = controller;
-
-    }
 
     /// <summary>
     /// Updates the movement system based on input and camera forward direction
@@ -98,7 +99,6 @@ public class MovementSystem
             CurrentState = MovementStates.Idle;
             CurrentSpeed = 0f;
 
-            Debug.Log($"In Idle State isJumping: {isJumping}");
             if (isJumping)
                 Jump();
         }
@@ -108,11 +108,17 @@ public class MovementSystem
             {
                 CurrentState = MovementStates.Sprinting;
                 CurrentSpeed = 2;
+                
+                if (isJumping)
+                    Jump();
             }
             else
             {
                 CurrentState = MovementStates.Running;
                 CurrentSpeed = 1;
+
+                if (isJumping)
+                    Jump();
             }
         }
     }
@@ -185,8 +191,7 @@ public class MovementSystem
         {
 
             //Apply jump velocity using the formula for jump height
-            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity);
-            Debug.Log($"Jump method executed {velocity.y}");
+            velocity.y = Mathf.Sqrt(jumpHeight * -2 * gravity); 
             isGrounded = false;
         }
 
@@ -204,4 +209,5 @@ public class MovementSystem
         characterController.Move(velocity * Time.deltaTime);
     }
 
+    #endregion
 }
