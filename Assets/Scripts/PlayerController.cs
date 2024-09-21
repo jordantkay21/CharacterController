@@ -16,7 +16,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float _buttonHoldThreshold;
     [SerializeField] float _gravity;
     [SerializeField] LayerMask _groundedLayer;
-    [SerializeField] float _groundCheckDistance;
+    [SerializeField] float _groundedOffset;
     [SerializeField] float _rotateSpeed;
     [SerializeField] float _walkSpeed;
     [SerializeField] float _runSpeed;
@@ -50,7 +50,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] Vector3 _cameraRight;
 
     private AnimationData AnimData;
-    private MovementData MoveData;
+    private MovementData moveData;
     private InputData InputData;
 
     private MovementSystem movementSystem;
@@ -67,10 +67,10 @@ public class PlayerController : MonoBehaviour
 
         InputData = new InputData(_buttonHoldThreshold);
         AnimData = new AnimationData();
-        MoveData = new MovementData();
+        moveData = new MovementData();
 
         cameraSystem = new CameraSystem(Camera);
-        movementSystem = new MovementSystem(CharacterController, MoveData);
+        movementSystem = new MovementSystem(CharacterController, moveData);
         animationSystem = new AnimationSystem(Animator, AnimData);
         inputSystem = new InputSystem(InputData);
     }
@@ -115,11 +115,11 @@ public class PlayerController : MonoBehaviour
         _movementInputHeld = InputData.MovementInputHeld;
 
         //UPDATE MOVEMENT SYSTEM
-        MoveData.MoveInput = _moveInput;
-        MoveData.IsCrouching = _isCrouching;
-        MoveData.IsJumping = _isJumping;
-        MoveData.IsSprinting = _isSprinting;
-        MoveData.IsStrafing = _isStrafing;
+        moveData.MoveInput = _moveInput;
+        moveData.IsCrouching = _isCrouching;
+        moveData.IsJumping = _isJumping;
+        moveData.IsSprinting = _isSprinting;
+        moveData.IsStrafing = _isStrafing;
 
     }
 
@@ -132,20 +132,23 @@ public class PlayerController : MonoBehaviour
 
     private void ProcessMovementData()
     {
-        MoveData.MoveDirection = _moveDirection;
-        MoveData.CameraForward = _cameraForward;
-        MoveData.CameraRight = _cameraRight;
-        MoveData.RunSpeed = _runSpeed;
-        MoveData.SprintSpeed = _sprintSpeed;
-        MoveData.SpeedChange = _speedChange;
+        moveData.GroundedOffset = _groundedOffset;
+        moveData.GroundLayerMask = _groundedLayer;
+        moveData.MoveDirection = _moveDirection;
+        moveData.CameraForward = _cameraForward;
+        moveData.CameraRight = _cameraRight;
+        moveData.RunSpeed = _runSpeed;
+        moveData.SprintSpeed = _sprintSpeed;
+        moveData.SpeedChange = _speedChange;
 
         movementSystem.UpdateMovementSystem();
 
-        _currentSpeed = MoveData.CurrentSpeed;
-        _targetSpeed = MoveData.TargetSpeed;
-        _isStopped = MoveData.IsStopped;
-        _currentState = MoveData.CurrentState;
-        _currentGait = MoveData.CurrentGait;
+        _isGrounded = moveData.IsGrounded;
+        _currentSpeed = moveData.CurrentSpeed;
+        _targetSpeed = moveData.TargetSpeed;
+        _isStopped = moveData.IsStopped;
+        _currentState = moveData.CurrentState;
+        _currentGait = moveData.CurrentGait;
         
     }
 
@@ -160,19 +163,33 @@ public class PlayerController : MonoBehaviour
         AnimData.CurrentGait = (int)_currentGait;
         AnimData.MoveSpeed = _currentSpeed;
 
-        AnimData.ShuffleDirectionX = MoveData.ShuffleDirectionX;
-        AnimData.ShuffleDirectionZ = MoveData.ShuffleDirectionZ;
-        AnimData.StrafeDirectionX = MoveData.StrafeDirectionX;
-        AnimData.StrafeDirectionZ = MoveData.StrafeDirectionZ;
-        AnimData.IsStrafing = MoveData.IsStrafing;
-        AnimData.ForwardStrafe = MoveData.ForwardStrafe;
-        AnimData.IsTurningInPlace = MoveData.IsTurningInPlace;
-        AnimData.CameraRotationOffset = MoveData.CameraRotationOffset;
+        AnimData.ShuffleDirectionX = moveData.ShuffleDirectionX;
+        AnimData.ShuffleDirectionZ = moveData.ShuffleDirectionZ;
+        AnimData.StrafeDirectionX = moveData.StrafeDirectionX;
+        AnimData.StrafeDirectionZ = moveData.StrafeDirectionZ;
+        AnimData.IsStrafing = moveData.IsStrafing;
+        AnimData.ForwardStrafe = moveData.ForwardStrafe;
+        AnimData.IsTurningInPlace = moveData.IsTurningInPlace;
+        AnimData.CameraRotationOffset = moveData.CameraRotationOffset;
 
         //Temporary Placeholders
-        AnimData.IsGrounded = true;
+        AnimData.IsGrounded = _isGrounded;
 
         animationSystem.UpdateAnimationSystem();
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        Gizmos.color = Physics.CheckSphere(new Vector3(
+            CharacterController.transform.position.x,
+            CharacterController.transform.position.y - _groundedOffset,
+            CharacterController.transform.position.z
+        ), CharacterController.radius, _groundedLayer, QueryTriggerInteraction.Ignore) ? Color.green : Color.red;
+        Gizmos.DrawWireSphere(new Vector3(
+            CharacterController.transform.position.x,
+            CharacterController.transform.position.y - _groundedOffset,
+            CharacterController.transform.position.z
+        ), CharacterController.radius);
     }
 
 }

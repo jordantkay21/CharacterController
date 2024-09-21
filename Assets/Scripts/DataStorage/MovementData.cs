@@ -32,6 +32,7 @@ public class MovementData
     public GaitState CurrentGait;
     public float CurrentSpeed;
     public float TargetSpeed;
+    public Vector3 GroundedSphere;
     #endregion
 
 
@@ -56,6 +57,14 @@ public class MovementData
     public float SprintSpeed;
     [Tooltip("SET BY: Inspector")]
     public float SpeedChange;
+    [Tooltip("SET BY: Inspector")]
+    public float GroundedOffset;
+    [Tooltip("SET BY: Inspector")]
+    public LayerMask GroundLayerMask;
+    [Tooltip("SET BY: Inspector")]
+    public Transform RearRayPos;
+    [Tooltip("SET BY: Inspector")]
+    public Transform FrontRayPos;
 
     #endregion
 
@@ -90,6 +99,9 @@ public class MovementData
     public float ForwardStrafe;
     [Tooltip("CONFIGURED FOR: AnimationSystem")]
     public float CameraRotationOffset;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float InclineAngle;
+    
     #endregion
     
     #endregion

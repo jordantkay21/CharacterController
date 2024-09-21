@@ -30,6 +30,7 @@ public class MovementSystem
 
     public void UpdateMovementSystem()
     {
+        GroundedCheck();
         ConfigureState();
         FaceMoveDirection();
         CalculateCurrentSpeed();
@@ -219,5 +220,52 @@ public class MovementSystem
             moveData.CurrentGait = GaitState.Sprinting;
             moveData.IsStopped = false;
         }
+    }
+
+    /// <summary>
+    ///     Checks if the character is grounded.
+    /// </summary>
+    private void GroundedCheck()
+    {
+        moveData.GroundedSphere = new Vector3(
+            characterController.transform.position.x,
+            characterController.transform.position.y - moveData.GroundedOffset,
+            characterController.transform.position.z
+        );
+
+
+        moveData.IsGrounded = Physics.CheckSphere(moveData.GroundedSphere, characterController.radius, moveData.GroundLayerMask, QueryTriggerInteraction.Ignore);
+
+        if (moveData.IsGrounded)
+        {
+            Debug.Log("Grounded");
+            //GroundInclineCheck();
+        }
+        else
+            Debug.Log("NotGroudned");
+    }
+
+    /// <summary>
+    ///     Checks for ground incline and sets the required variables.
+    /// </summary>
+    private void GroundInclineCheck()
+    {
+        float rayDistance = Mathf.Infinity;
+        moveData.RearRayPos.rotation = Quaternion.Euler(characterController.transform.rotation.x, 0, 0);
+        moveData.FrontRayPos.rotation = Quaternion.Euler(characterController.transform.rotation.x, 0, 0);
+
+        Physics.Raycast(moveData.RearRayPos.position, moveData.RearRayPos.TransformDirection(-Vector3.up), out RaycastHit rearHit, rayDistance, moveData.GroundLayerMask);
+        Physics.Raycast(
+            moveData.FrontRayPos.position,
+            moveData.FrontRayPos.TransformDirection(-Vector3.up),
+            out RaycastHit frontHit,
+            rayDistance,
+            moveData.GroundLayerMask
+        );
+
+        Vector3 hitDifference = frontHit.point - rearHit.point;
+        float xPlaneLength = new Vector2(hitDifference.x, hitDifference.z).magnitude;
+
+        moveData.InclineAngle = Mathf.Lerp(moveData.InclineAngle, Mathf.Atan2(hitDifference.y, xPlaneLength) * Mathf.Rad2Deg, 20f * Time.deltaTime);
     }
 }
