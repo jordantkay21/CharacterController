@@ -22,6 +22,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float _runSpeed;
     [SerializeField] float _sprintSpeed;
     [SerializeField] float _jumpHeight;
+    [SerializeField] float _speedChange;
 
     [Header("STATE MANAGEMENT")]
     [SerializeField] bool _isStopped;
@@ -31,6 +32,8 @@ public class PlayerController : MonoBehaviour
     [SerializeField] bool _isSprinting;
 
     [Header("RUNTIME VALUES")]
+    [SerializeField] MovementStates _currentState;
+    [SerializeField] GaitState _currentGait;
     [SerializeField] Vector2 _moveInput;
     [SerializeField] Vector2 _lookInput;
     [SerializeField] float _currentSpeed;
@@ -39,7 +42,12 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float _movementInputDuration;
     [SerializeField] bool _movementInputTapped;
     [SerializeField] bool _movementInputHeld;
-
+    [SerializeField] bool _isStrafing;
+    
+    [Header("Player Controller Origin")]
+    [SerializeField] Vector3 _moveDirection;
+    [SerializeField] Vector3 _cameraForward;
+    [SerializeField] Vector3 _cameraRight;
 
     private AnimationData AnimData;
     private MovementData MoveData;
@@ -84,13 +92,18 @@ public class PlayerController : MonoBehaviour
             Cursor.lockState = CursorLockMode.Locked;
         }
 
+        ProcessCameraInput();
         ProcessInput();
+        ProcessMovementData();
+        UpdateAnimationData();
     }
 
     private void ProcessInput()
     {
+        //UPDATE INSPECTOR
         InputData.CalculateInputData();
 
+        _isStrafing = InputData.IsStrafing;
         _moveInput = InputData.MoveInput;
         _lookInput = InputData.LookInput;
         _isCrouching = InputData.IsCrouching;
@@ -100,94 +113,66 @@ public class PlayerController : MonoBehaviour
         _movementInputDuration = InputData.InputDuration_db;
         _movementInputTapped = InputData.MovementInputTapped;
         _movementInputHeld = InputData.MovementInputHeld;
+
+        //UPDATE MOVEMENT SYSTEM
+        MoveData.MoveInput = _moveInput;
+        MoveData.IsCrouching = _isCrouching;
+        MoveData.IsJumping = _isJumping;
+        MoveData.IsSprinting = _isSprinting;
+        MoveData.IsStrafing = _isStrafing;
+
+    }
+
+    private void ProcessCameraInput()
+    {
+        _moveDirection = (cameraSystem.GetCameraForwardZeroedYNormalised() * _moveInput.y) + (cameraSystem.GetCameraRightZeroedYNormalised() * _moveInput.x);
+        _cameraForward = cameraSystem.GetCameraForwardZeroedYNormalised();
+        _cameraRight = cameraSystem.GetCameraRightZeroedYNormalised();
+    }
+
+    private void ProcessMovementData()
+    {
+        MoveData.MoveDirection = _moveDirection;
+        MoveData.CameraForward = _cameraForward;
+        MoveData.CameraRight = _cameraRight;
+        MoveData.RunSpeed = _runSpeed;
+        MoveData.SprintSpeed = _sprintSpeed;
+        MoveData.SpeedChange = _speedChange;
+
+        movementSystem.UpdateMovementSystem();
+
+        _currentSpeed = MoveData.CurrentSpeed;
+        _targetSpeed = MoveData.TargetSpeed;
+        _isStopped = MoveData.IsStopped;
+        _currentState = MoveData.CurrentState;
+        _currentGait = MoveData.CurrentGait;
         
-
     }
-    private void RetriveCameraData()
+
+    public void UpdateAnimationData()
     {
-        //Get camera forward direction from the CameraSystem
-        cameraForward = cameraSystem.GetCameraForward();
+        //UPDATE ANIMATION SYSTEM
+        AnimData.MovementInputTapped = _movementInputTapped;
+        AnimData.MovementInputHeld = _movementInputHeld;
+        AnimData.IsCrouching = _isCrouching;
+        AnimData.IsJumping = _isJumping;
+        AnimData.IsStopped = _isStopped;
+        AnimData.CurrentGait = (int)_currentGait;
+        AnimData.MoveSpeed = _currentSpeed;
+
+        AnimData.ShuffleDirectionX = MoveData.ShuffleDirectionX;
+        AnimData.ShuffleDirectionZ = MoveData.ShuffleDirectionZ;
+        AnimData.StrafeDirectionX = MoveData.StrafeDirectionX;
+        AnimData.StrafeDirectionZ = MoveData.StrafeDirectionZ;
+        AnimData.IsStrafing = MoveData.IsStrafing;
+        AnimData.ForwardStrafe = MoveData.ForwardStrafe;
+        AnimData.IsTurningInPlace = MoveData.IsTurningInPlace;
+        AnimData.CameraRotationOffset = MoveData.CameraRotationOffset;
+
+        //Temporary Placeholders
+        AnimData.IsGrounded = true;
+
+        animationSystem.UpdateAnimationSystem();
     }
-    public void OnJumpEnd(string jump)
-    {
-        Debug.Log($"{jump} animation has ended");
-        animationSystem.OnJumpAnimationEnd();
-        movementSystem.isJumping = false;
-    }
-
-
-    #region Archived Code
-    bool movementInputDetected;
-    float movementInputDuration;
-
-    [Header("Configurable Gravity Values")]
-    float gravity;
-
-    [Header("Configurable Jump Values")]
-    float jumpHeight;
-
-    [Header("Configurable Ground Check Values")]
-    Transform groundedRaycastStart;
-    LayerMask groundLayer;
-    float groundCheckDistance;
-
-    [Header("Configurable Locomotion Values")]
-    float rotationSpeed;
-
-    [Header("Runtime Locomotion Values")]
-    Vector2 moveInput;
-    float moveSpeed;
-
-    [Header("Runtime Camera Values")]
-    Vector3 cameraForward;
-
-    [Header("Runtime State Management")]
-    MovementStates currentState;
-    bool isStopped;
-    bool isSprinting;
-    bool isCrouching;
-    bool isJumping;
-    bool isGrounded;
-    private void OldUpdate()
-    {
-
-       // ProcessInput();
-        //RetriveCameraData();
-
-        //PassMovementValues(); 
-
-        //movementSystem.UpdateState();
-
-        //RetrieveMovementData(); //Retrieves Movement data to update Inspector for debug purposes
-
-        //animationSystem.UpdateAnimation();
-
-    }
-    private void PassMovementValues()
-    {
-        movementSystem.MoveInput = moveInput;
-        movementSystem.isSprinting = isSprinting;
-        movementSystem.RotateSpeed = rotationSpeed;
-        movementSystem.cameraForward = cameraForward;
-        movementSystem.groundedRaycastStart = groundedRaycastStart;
-        movementSystem.groundLayer = groundLayer;
-        movementSystem.groundCheckDistance = groundCheckDistance;
-        movementSystem.jumpHeight = jumpHeight;
-        movementSystem.gravity = gravity;
-        movementSystem.isJumping = isJumping;
-        Debug.Log($"Pass Movement data executed. isJumping: {movementSystem.isJumping}");
-    }
-    /// <summary>
-    /// Inputs data retreived by Input and Camera Systems into the Movement system. 
-    /// The Movement System processes said data.
-    /// Processed Data is retrieved and stored.
-    /// </summary>
-    private void RetrieveMovementData()
-    {
-        isSprinting = movementSystem.isSprinting;
-        moveSpeed = movementSystem.CurrentSpeed;
-        isGrounded = movementSystem.isGrounded;
-    }
-    #endregion
 
 }

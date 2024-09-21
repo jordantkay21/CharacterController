@@ -9,6 +9,7 @@ public class InputData
     public bool IsCrouching;
     public bool IsAiming;
     public bool IsJumping;
+    public bool IsStrafing;
 
     public bool MovementInputTapped;
     public bool MovementInputHeld;
@@ -21,10 +22,10 @@ public class InputData
     public InputData(float buttonHoldThreshold)
     {
         ButtonHoldThreshold = buttonHoldThreshold;
+        IsStrafing = true;
     }
     public void CalculateInputData()
     {
-        Debug.Log($"InputDetected: {InputDetected_db}");
         if (InputDetected_db)
         {
             if (InputDuration_db > 0 && InputDuration_db < ButtonHoldThreshold)
@@ -39,7 +40,6 @@ public class InputData
             }
 
             InputDuration_db += Time.deltaTime;
-            Debug.Log($"InputDuration: {InputDuration_db}");
         }
         else
         {

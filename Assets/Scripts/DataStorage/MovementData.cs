@@ -13,46 +13,85 @@ public enum MovementStates
     Sprinting,
     Running
 }
-public enum MovementGait
+public enum GaitState
 {
     Idle = 0,
     Walking = 1,
     Running = 2,
     Sprinting = 3
 }
-public class MovementData 
+public class MovementData
 {
-    #region Retrieved Data
+    public MovementData()
+    {
+        ForwardStrafe = 1f;
+    }
+
+    #region DEBUG VALUES
+    public MovementStates CurrentState;
+    public GaitState CurrentGait;
+    public float CurrentSpeed;
+    public float TargetSpeed;
+    #endregion
+
+
+    #region SET BY:
+    #region INPUT SYSTEM
+    [Tooltip("SET BY: Input System")]
     public Vector2 MoveInput;
-    public Vector3 CameraForward;
+    [Tooltip("SET BY: Inputsystem")]
+    public bool IsCrouching; 
+    [Tooltip("SET BY: Inputsystem")]
+    public bool IsJumping; 
+    [Tooltip("SET BY: Inputsystem")]
+    public bool IsSprinting; 
+    [Tooltip("SET BY: Inputsystem")]
+    public bool IsStrafing;
     #endregion
 
-    #region Inspector Configurable Values
-    public float Gravity;
-    public LayerMask groundedLayer;
-    public float GroundCheckDistance;
-    public float WalkSpeed;
+    #region INSPECTOR
+    [Tooltip("SET BY: Inspector")]
     public float RunSpeed;
+    [Tooltip("SET BY: Inspector")]
     public float SprintSpeed;
-    public float JumpHeight;
+    [Tooltip("SET BY: Inspector")]
+    public float SpeedChange;
+
     #endregion
 
-    #region State Management Values
-    public MovementGait CurrentGait; //Determines the current gait by evaluating input values and environmental values
-    public MovementStates CurrentState; //Determines the current state by evaluating input values, calculated values, and environmental values
+    #region CAMERA SYSTEM
+    [Tooltip("SET BY: Camera System")]
+    public Vector3 MoveDirection;
+    [Tooltip("SET BY: CameraSystem")]
+    public Vector3 CameraForward;
+    [Tooltip("SET BY: CameraSystem")]
+    public Vector3 CameraRight;
+    #endregion
+    #endregion
 
-    public bool IsCrouching; // Set by InputSystem via PlayerController
-    public bool IsJumping; // Set by InputSystem via PlayerController
-    public bool IsStopped; // Set by calulating whether or not the player is actively moving
+    #region CONFIGURED FOR:
+
+    #region AnimationSystem
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
     public bool IsGrounded;
-    public bool IsSprinting;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public bool IsStopped;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public bool IsTurningInPlace;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float ShuffleDirectionX;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float ShuffleDirectionZ;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float StrafeDirectionX;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float StrafeDirectionZ;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float ForwardStrafe;
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float CameraRotationOffset;
     #endregion
-
-    #region Locomotion State Values
-
-    public float CurrentSpeed;  //Stores the current speed set by calcualtions via the MovementSystem
-    public float TargetSpeed; // Stores the target speed that the currentSpeed should smoothly transition to. Set by currentGait State
-    public float RotateSpeed;
-
+    
     #endregion
+   
 }

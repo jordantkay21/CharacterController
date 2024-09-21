@@ -88,8 +88,6 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
         controls.CharacterControls.Disable();
     }
 
-
-
     #region EventHandlers
     /// <summary>
     ///     Defines the action to perform when the OnLook callback is called.
@@ -128,20 +126,6 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     }
 
     /// <summary>
-    ///     Defines the action to perform when the OnToggleWalk callback is called.
-    /// </summary>
-    /// <param name="context">The context of the callback.</param>
-    public void OnToggleWalk(InputAction.CallbackContext context)
-    {
-        if (!context.performed)
-        {
-            return;
-        }
-
-        onWalkToggled?.Invoke();
-    }
-
-    /// <summary>
     ///     Defines the action to perform when the OnSprint callback is called.
     /// </summary>
     /// <param name="context">The context of the callback.</param>
@@ -149,13 +133,15 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     {
         if (context.started)
         {
+
             _inputData.IsSprinting = true;
-            onSprintActivated?.Invoke();
+            _inputData.IsStrafing = false;
         }
         else if (context.canceled)
         {
             _inputData.IsSprinting = false;
-            onSprintDeactivated?.Invoke();
+            _inputData.IsStrafing = true;
+            
         }
     }
 
@@ -167,13 +153,7 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
     {
         if (context.started)
         {
-            _inputData.IsCrouching = true;
-            onCrouchActivated?.Invoke();
-        }
-        else if (context.canceled)
-        {
-            _inputData.IsCrouching = false;
-            onCrouchDeactivated?.Invoke();
+            _inputData.IsCrouching = !_inputData.IsCrouching;
         }
     }
 
@@ -209,6 +189,11 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
 
         onLockOnToggled?.Invoke();
         onSprintDeactivated?.Invoke();
+    }
+
+    public void OnToggleWalk(InputAction.CallbackContext context)
+    {
+        throw new NotImplementedException();
     }
     #endregion
 }
