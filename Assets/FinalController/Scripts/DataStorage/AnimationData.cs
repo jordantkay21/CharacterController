@@ -36,6 +36,8 @@ public class AnimationData
 
     public float LocomotionStartDirection;
 
-    
 
+
+    public Vector3 RootMotion;
+    public Vector3 RootVelocity;
 }

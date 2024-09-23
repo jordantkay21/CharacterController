@@ -9,14 +9,13 @@ public class MovementSystem
     private CharacterController characterController;
     private MovementData moveData;
 
-    private Vector3 _velocity;
-    private Vector3 _targetVelocity;
     private const float _ANIMATION_DAMP_TIME = 5f;
     private const float _STRAFE_DIRECTION_DAMP_TIME = 20f;
     private float _strafeAngle;
     private float _forwardStrafeMinThreshold = -55.0f;
     private float _forwardStrafeMaxThreshold = 125.0f;
     private float _rotationSmoothing = 10f;
+    
 
     /// <summary>
     /// Initializes a new instance of the MovementSystem class with the specified CharacterController.
@@ -31,11 +30,71 @@ public class MovementSystem
     public void UpdateMovementSystem()
     {
         GroundedCheck();
+        ConfigureMovement();
+        ProcessJumpAndGravity();
         ConfigureState();
         FaceMoveDirection();
         CalculateCurrentSpeed();
+
+        if (moveData.IsJumping)
+        {
+            InitiateJump();
+        }
+
     }
 
+    /// <summary>
+    ///     Checks if the character is grounded.
+    /// </summary>
+    private void GroundedCheck()
+    {
+        moveData.GroundedSphere = new Vector3(
+            characterController.transform.position.x,
+            characterController.transform.position.y - moveData.GroundedOffset,
+            characterController.transform.position.z
+        );
+
+
+        moveData.IsGrounded = Physics.CheckSphere(moveData.GroundedSphere, characterController.radius, moveData.GroundLayerMask, QueryTriggerInteraction.Ignore);
+
+        if (moveData.IsGrounded)
+        {
+            GroundInclineCheck();
+        }
+    }
+    private void ConfigureMovement()
+    {
+        if (!moveData.IsGrounded)
+        { 
+            //Apply Gravity
+            moveData.RootMotion.y += moveData.GravityMultiplier * Time.deltaTime;
+
+            //Clamp the maximum falling speed if needed
+            moveData.RootMotion.y = Mathf.Clamp(moveData.RootMotion.y, -moveData.MaxFallSpeed, Mathf.Infinity);
+        }
+
+        characterController.Move(moveData.RootMotion * Time.deltaTime);
+    }
+    private void ProcessJumpAndGravity()
+    {
+        if (moveData.IsJumping)
+        {
+            moveData.RootVelocity.y -= moveData.Gravity * Time.fixedDeltaTime;
+            characterController.Move(moveData.RootVelocity * Time.fixedDeltaTime)  ;
+            moveData.IsJumping = !moveData.IsGrounded;
+            moveData.RootMotion = Vector3.zero;
+        }
+        else
+        {
+            characterController.Move(moveData.RootMotion + Vector3.down * moveData.StepDown);
+            moveData.RootMotion = Vector3.zero;
+            if (moveData.IsGrounded)
+            {
+                moveData.IsJumping = false;
+                moveData.RootVelocity.y = 0;
+            }
+        }
+    }
     public void ConfigureState()
     {
         if (moveData.MoveInput == Vector2.zero)
@@ -222,50 +281,52 @@ public class MovementSystem
         }
     }
 
-    /// <summary>
-    ///     Checks if the character is grounded.
-    /// </summary>
-    private void GroundedCheck()
+    private void InitiateJump()
     {
-        moveData.GroundedSphere = new Vector3(
-            characterController.transform.position.x,
-            characterController.transform.position.y - moveData.GroundedOffset,
-            characterController.transform.position.z
-        );
-
-
-        moveData.IsGrounded = Physics.CheckSphere(moveData.GroundedSphere, characterController.radius, moveData.GroundLayerMask, QueryTriggerInteraction.Ignore);
-
-        if (moveData.IsGrounded)
-        {
-            Debug.Log("Grounded");
-            //GroundInclineCheck();
-        }
-        else
-            Debug.Log("NotGroudned");
+        Debug.Log("Initiating Jump");
+        moveData.RootVelocity.y = Mathf.Sqrt(2 * moveData.Gravity * moveData.JumpHeight);
     }
+
+
 
     /// <summary>
     ///     Checks for ground incline and sets the required variables.
     /// </summary>
     private void GroundInclineCheck()
     {
+        //Set the maximum distance for the raycasts
         float rayDistance = Mathf.Infinity;
-        moveData.RearRayPos.rotation = Quaternion.Euler(characterController.transform.rotation.x, 0, 0);
-        moveData.FrontRayPos.rotation = Quaternion.Euler(characterController.transform.rotation.x, 0, 0);
 
-        Physics.Raycast(moveData.RearRayPos.position, moveData.RearRayPos.TransformDirection(-Vector3.up), out RaycastHit rearHit, rayDistance, moveData.GroundLayerMask);
+        //Align Ray Position with Character's Rotation
+        moveData.RearRayPos.rotation = Quaternion.Euler(characterController.transform.rotation.x, 0, 0);
+        moveData.ForwardRayPos.rotation = Quaternion.Euler(characterController.transform.rotation.x, 0, 0);
+
+        //Cast Raycasts Downward to Detect Ground [1 for raer and 1 for front]
         Physics.Raycast(
-            moveData.FrontRayPos.position,
-            moveData.FrontRayPos.TransformDirection(-Vector3.up),
+            moveData.RearRayPos.position, 
+            moveData.RearRayPos.TransformDirection(-Vector3.up), 
+            out RaycastHit rearHit, 
+            rayDistance, 
+            moveData.GroundLayerMask);
+        Physics.Raycast(
+            moveData.ForwardRayPos.position,
+            moveData.ForwardRayPos.TransformDirection(-Vector3.up),
             out RaycastHit frontHit,
             rayDistance,
             moveData.GroundLayerMask
         );
 
+        //Caculate the spatial difference between the front and rear ground contact points
         Vector3 hitDifference = frontHit.point - rearHit.point;
+        //Finds the horizontal (flat) distance between the two hit points, ignoring vertical differences
         float xPlaneLength = new Vector2(hitDifference.x, hitDifference.z).magnitude;
 
+        //Determines the angle of the ground's incline and smoothly updates it over time
+        //Mathf.Atan2(hitDifference.y, xPlaneLength): Calculates the angle in radians between the vertical difference (hitDifference.y) and horizontal distance (xPlaneLength), effectively finding the slope's angle.
+        //Mathf.Rad2Deg: Converts the angle from radians to degrees for easier interpretation and use in animations.
+        //
         moveData.InclineAngle = Mathf.Lerp(moveData.InclineAngle, Mathf.Atan2(hitDifference.y, xPlaneLength) * Mathf.Rad2Deg, 20f * Time.deltaTime);
     }
+
+
 }

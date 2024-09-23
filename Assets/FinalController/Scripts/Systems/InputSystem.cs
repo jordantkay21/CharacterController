@@ -118,11 +118,6 @@ public class InputSystem : PlayerInput.ICharacterControlsActions
         {
             _inputData.IsJumping = true;
         }
-
-        if (context.canceled)
-        {
-            _inputData.IsJumping = false;
-        }
     }
 
     /// <summary>

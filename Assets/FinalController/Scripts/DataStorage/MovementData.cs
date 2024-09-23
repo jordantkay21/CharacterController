@@ -64,8 +64,22 @@ public class MovementData
     [Tooltip("SET BY: Inspector")]
     public Transform RearRayPos;
     [Tooltip("SET BY: Inspector")]
-    public Transform FrontRayPos;
+    public Transform ForwardRayPos;
+    [Tooltip("SET BY: Inspector")]
+    public float GravityMultiplier;
+    [Tooltip("SET BY: Inspector")]
+    public float MaxFallSpeed;
+    [Tooltip("SET BY: Inspector")]
+    public float Gravity;
+    [Tooltip("SET BY: Inspector")]
+    public float JumpHeight;
+    [Tooltip("SET BY: Inspector")]
+    public float StepDown;
+    #endregion
 
+    #region Animation System
+    public Vector3 RootMotion;
+    public Vector3 RootVelocity;
     #endregion
 
     #region CAMERA SYSTEM
@@ -79,7 +93,6 @@ public class MovementData
     #endregion
 
     #region CONFIGURED FOR:
-
     #region AnimationSystem
     [Tooltip("CONFIGURED FOR: AnimationSystem")]
     public bool IsGrounded;
@@ -101,9 +114,11 @@ public class MovementData
     public float CameraRotationOffset;
     [Tooltip("CONFIGURED FOR: AnimationSystem")]
     public float InclineAngle;
-    
+    [Tooltip("CONFIGURED FOR: AnimationSystem")]
+    public float FallDuration;
+
     #endregion
     
     #endregion
-   
+
 }

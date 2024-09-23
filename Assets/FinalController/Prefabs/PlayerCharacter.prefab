@@ -774,6 +774,37 @@ Transform:
   - {fileID: 767641584592430627}
   m_Father: {fileID: 8477766569410828279}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &2690529667498582973
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 9180533278577475926}
+  m_Layer: 0
+  m_Name: RearRayPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &9180533278577475926
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2690529667498582973}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.8, z: -0.15}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5733014264580352647}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &2916240662103767015
 GameObject:
   m_ObjectHideFlags: 0
@@ -1166,6 +1197,8 @@ Transform:
   - {fileID: 7208307697310488764}
   - {fileID: 1136208503195932542}
   - {fileID: 1856445608949274651}
+  - {fileID: 7181977633283323223}
+  - {fileID: 9180533278577475926}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!114 &8803350059872739975
@@ -1181,21 +1214,25 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   hideCursor: 1
-  CharacterController: {fileID: 0}
+  showDebug: 1
+  CharacterController: {fileID: 2743257318606070412}
   Animator: {fileID: 0}
   Camera: {fileID: 0}
   _buttonHoldThreshold: 0.1
-  _gravity: 0
+  _gravityMultiplier: 0.001
   _groundedLayer:
     serializedVersion: 2
     m_Bits: 8
-  _groundCheckDistance: 0
+  _groundedOffset: 0
+  _rearRayPos: {fileID: 9180533278577475926}
+  _forwardRayPos: {fileID: 7181977633283323223}
   _rotateSpeed: 0
   _walkSpeed: 0
   _runSpeed: 2.5
   _sprintSpeed: 7
   _jumpHeight: 0
   _speedChange: 3
+  _maxFallSpeed: 0
   _isStopped: 0
   _isJumping: 0
   _isCrouching: 0
@@ -1205,6 +1242,10 @@ MonoBehaviour:
   _currentGait: 0
   _moveInput: {x: 0, y: 0}
   _lookInput: {x: 0, y: 0}
+  _rootMotion: {x: 0, y: 0, z: 0}
+  _fallDuration: 0
+  _verticalVelocity: 0
+  _inclineAngle: 0
   _currentSpeed: 0
   _targetSpeed: 0
   _movementInputDetected: 0
@@ -1233,13 +1274,13 @@ CharacterController:
   m_ProvidesContacts: 0
   m_Enabled: 1
   serializedVersion: 3
-  m_Height: 2
+  m_Height: 1.8
   m_Radius: 0.3
   m_SlopeLimit: 45
   m_StepOffset: 0.3
   m_SkinWidth: 0.08
   m_MinMoveDistance: 0.001
-  m_Center: {x: 0, y: 1.1, z: 0}
+  m_Center: {x: 0, y: 0.9, z: 0}
 --- !u!95 &1679604036128262732
 Animator:
   serializedVersion: 7
@@ -1814,6 +1855,37 @@ Transform:
   m_Children:
   - {fileID: 7007851651117773438}
   m_Father: {fileID: 8736132585360602450}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!1 &7686516345457462688
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 7181977633283323223}
+  m_Layer: 0
+  m_Name: FrontRayPos
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &7181977633283323223
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 7686516345457462688}
+  serializedVersion: 2
+  m_LocalRotation: {x: -0, y: -0, z: -0, w: 1}
+  m_LocalPosition: {x: 0, y: 0.8, z: 0.15}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 5733014264580352647}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!1 &7707277042579580323
 GameObject:

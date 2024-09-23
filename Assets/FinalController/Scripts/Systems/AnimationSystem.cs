@@ -56,6 +56,7 @@ public class AnimationSystem
     public void UpdateAnimationSystem()
     {
         UpdateAnimatorController();
+        RetrieveRootMotion();
     }
     // Method to update animation based on movement state
     private void UpdateAnimatorController()
@@ -68,7 +69,7 @@ public class AnimationSystem
 
         animator.SetFloat(IsStrafingHash, animData.IsStrafing ? 1.0f : 0.0f);
 
-        //animator.SetFloat(_inclineAngleHash, _inclineAngle);
+        animator.SetFloat(InclineAngleHash, animData.InclineAngle);
 
         animator.SetFloat(MoveSpeedHash, animData.MoveSpeed);
         animator.SetInteger(CurrentGaitHash, (int)animData.CurrentGait);
@@ -96,7 +97,15 @@ public class AnimationSystem
         //animator.SetFloat(_locomotionStartDirectionHash, _locomotionStartDirection);
     }
 
+    public void RetrieveRootMotion()
+    {
+        animData.RootMotion = animator.deltaPosition;
+    }
 
+    public void RetrieveRootVelocity()
+    {
+        animData.RootVelocity = animator.velocity;
+    }
 
     public void OnJumpAnimationEnd()
     {

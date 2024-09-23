@@ -6,6 +6,7 @@ using Unity.Cinemachine;
 public class PlayerController : MonoBehaviour
 {
     [SerializeField] bool hideCursor;
+    [SerializeField] bool showDebug;
 
     [Header("REQUIRED COMPONENTS")]
     [SerializeField] CharacterController CharacterController;
@@ -14,15 +15,21 @@ public class PlayerController : MonoBehaviour
 
     [Header("CONFIGURABLE VALUES")]
     [SerializeField] float _buttonHoldThreshold;
-    [SerializeField] float _gravity;
+    [SerializeField] float _gravityMultiplier;
     [SerializeField] LayerMask _groundedLayer;
     [SerializeField] float _groundedOffset;
+    [SerializeField] Transform _rearRayPos;
+    [SerializeField] Transform _forwardRayPos;
     [SerializeField] float _rotateSpeed;
     [SerializeField] float _walkSpeed;
     [SerializeField] float _runSpeed;
     [SerializeField] float _sprintSpeed;
-    [SerializeField] float _jumpHeight;
     [SerializeField] float _speedChange;
+    [SerializeField] float _maxFallSpeed;
+    [SerializeField] float _gravity;
+    [SerializeField] float _jumpHeight;
+    [SerializeField] float _stepDown;
+
 
     [Header("STATE MANAGEMENT")]
     [SerializeField] bool _isStopped;
@@ -36,6 +43,11 @@ public class PlayerController : MonoBehaviour
     [SerializeField] GaitState _currentGait;
     [SerializeField] Vector2 _moveInput;
     [SerializeField] Vector2 _lookInput;
+    [SerializeField] Vector3 _rootMotion;
+    [SerializeField] Vector3 _rootVelocity;
+    [SerializeField] float _fallDuration;
+    [SerializeField] float _verticalVelocity;
+    [SerializeField] float _inclineAngle;
     [SerializeField] float _currentSpeed;
     [SerializeField] float _targetSpeed;
     [SerializeField] bool _movementInputDetected;
@@ -94,8 +106,15 @@ public class PlayerController : MonoBehaviour
 
         ProcessCameraInput();
         ProcessInput();
+        RetrieveAnimationData();
+
         ProcessMovementData();
         UpdateAnimationData();
+    }
+    private void RetrieveAnimationData()
+    {
+        _rootMotion = AnimData.RootMotion;
+        _rootVelocity = AnimData.RootVelocity;
     }
 
     private void ProcessInput()
@@ -132,6 +151,16 @@ public class PlayerController : MonoBehaviour
 
     private void ProcessMovementData()
     {
+        moveData.IsJumping = _isJumping;
+        moveData.StepDown = _stepDown;
+        moveData.JumpHeight = _jumpHeight;
+        moveData.Gravity = _gravity;
+        moveData.GravityMultiplier = _gravityMultiplier;
+        moveData.MaxFallSpeed = _maxFallSpeed;
+        moveData.RootMotion = _rootMotion;
+        moveData.RootVelocity = _rootVelocity;
+        moveData.ForwardRayPos = _forwardRayPos;
+        moveData.RearRayPos = _rearRayPos;
         moveData.GroundedOffset = _groundedOffset;
         moveData.GroundLayerMask = _groundedLayer;
         moveData.MoveDirection = _moveDirection;
@@ -143,12 +172,15 @@ public class PlayerController : MonoBehaviour
 
         movementSystem.UpdateMovementSystem();
 
+        _isJumping = moveData.IsJumping;
         _isGrounded = moveData.IsGrounded;
         _currentSpeed = moveData.CurrentSpeed;
         _targetSpeed = moveData.TargetSpeed;
         _isStopped = moveData.IsStopped;
         _currentState = moveData.CurrentState;
         _currentGait = moveData.CurrentGait;
+        _inclineAngle = moveData.InclineAngle;
+        _fallDuration = moveData.FallDuration;
         
     }
 
@@ -174,22 +206,40 @@ public class PlayerController : MonoBehaviour
 
         //Temporary Placeholders
         AnimData.IsGrounded = _isGrounded;
+        AnimData.InclineAngle = _inclineAngle;
+        AnimData.FallDuration = _fallDuration;
 
         animationSystem.UpdateAnimationSystem();
     }
 
     private void OnDrawGizmosSelected()
     {
-        Gizmos.color = Physics.CheckSphere(new Vector3(
-            CharacterController.transform.position.x,
-            CharacterController.transform.position.y - _groundedOffset,
-            CharacterController.transform.position.z
-        ), CharacterController.radius, _groundedLayer, QueryTriggerInteraction.Ignore) ? Color.green : Color.red;
-        Gizmos.DrawWireSphere(new Vector3(
-            CharacterController.transform.position.x,
-            CharacterController.transform.position.y - _groundedOffset,
-            CharacterController.transform.position.z
-        ), CharacterController.radius);
+        if (showDebug)
+        {
+            Gizmos.color = Physics.CheckSphere(new Vector3(
+                CharacterController.transform.position.x,
+                CharacterController.transform.position.y - _groundedOffset,
+                CharacterController.transform.position.z
+            ), CharacterController.radius, _groundedLayer, QueryTriggerInteraction.Ignore) ? Color.green : Color.red;
+            Gizmos.DrawWireSphere(new Vector3(
+                CharacterController.transform.position.x,
+                CharacterController.transform.position.y - _groundedOffset,
+                CharacterController.transform.position.z
+            ), CharacterController.radius);
+
+
+            Debug.DrawRay(
+                _rearRayPos.position,
+                _rearRayPos.TransformDirection(-Vector3.up),
+                Color.blue
+                );
+            Debug.DrawRay(
+                _forwardRayPos.position,
+                _forwardRayPos.TransformDirection(-Vector3.up),
+                Color.blue
+                );
+        }
+
     }
 
 }
